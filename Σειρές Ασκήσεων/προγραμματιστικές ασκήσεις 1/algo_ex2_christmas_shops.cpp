@@ -15,65 +15,71 @@
 #define NO_ANSWER -1
 
 /*
-    "residents" array stores the number of residents in each
+    "RESIDENTS" array stores the number of residents in each
     apartment complex.
 */
-unsigned int residents[MAXN] = {};
+unsigned int RESIDENTS[MAXN] = {};
 /*
-    First element of tuple is element_index in "residents" array.
+    First element of tuple is element_index in "RESIDENTS" array.
     Second element of tuple is remainder.
-    Third element of tuple is a boolean flag, whether a gap exists or not.
+    Third element of tuple is a boolean flag, whether an element was previously added or not.
+    Fourth element of tuple is a boolean flag, whether the second set is formed or not.
 
-    The unordered_map "solutions" uses states as keys and returnes stored answers.
+    The unordered_map "SOLUTIONS" uses states as keys and returnes stored answers.
 */
-std::unordered_map<std::tuple<unsigned int, unsigned int, bool>, int > solutions;
+std::unordered_map<std::tuple<unsigned int, unsigned int, bool, bool>, int > SOLUTIONS;
 
-int subset_sum(std::tuple<unsigned int, unsigned int, bool> &current_state,
+int subset_sum(std::tuple<unsigned int, unsigned int, bool, bool> &current_state,
                 const int &current_ans, const unsigned int &size)
 {   
-    if (solutions.find(current_state) != solutions.end())
+    if (SOLUTIONS.find(current_state) != SOLUTIONS.end())
         /*
             Base case 1:
             - If current state has been previously solved, just return the answer.
         */
-        return solutions.at(current_state);
+        return SOLUTIONS.at(current_state);
     if (std::get<1>(current_state) == 0)
     {
         /*
             Base case 2:
             - If target sum has been reached, do not add another element.
-              Insert answer in "solutions" map and return it.
+              Insert answer in "SOLUTIONS" map and return it.
         */
-        solutions.insert({current_state, current_ans});
+        SOLUTIONS.insert({current_state, current_ans});
         return current_ans;
     }
     else if (std::get<1>(current_state) < 0 ||
+            (std::get<1>(current_state) > 0 && std::get<0>(current_state) == size) ||
             (std::get<1>(current_state) > 0 &&
-             std::get<0>(current_state) == size))
+            !std::get<2>(current_state) && std::get<3>(current_state)))
     {
         /*
-            Base case 3:
-            - If target sum is unreachable, insert answer in "solutions"
-              map and return failure.
+            Base case 3: Target sum is unreachable
+            - Remainder is negative.
+            - Remainder is positive but no more elements.
+            - Remainder is positive but the second set just closed.
+                - flag (added before or not) == false.
+                - flag (second set or not) == true;
+            Store the state and return "no answer". 
         */
-        solutions.insert({current_state, NO_ANSWER});
+        SOLUTIONS.insert({current_state, NO_ANSWER});
         return NO_ANSWER;
     }
     else if (std::get<2>(current_state))
     {
         /*
             Ordinary case 1:
-            - flag == true.
-            This means that there is currently only one set and,
-            therefore, the option to omit an element is available. 
+            - flag (added before or not) == true.
+            - flag (second set or not) == true or false;
+            Currently creating the second set. 
         */
         auto new_state1 = current_state;
         auto new_state2 = current_state;
         /*
-            new_state1 = { current_index + 1, remainder - residents[current_index], true}
-            new_state2 = { current_index + 1, remainder, false}
+            new_state1 = { current_index + 1, remainder - RESIDENTS[current_index], true, X}
+            new_state2 = { current_index + 1, remainder, false, X}
         */
-        std::get<1>(new_state1) -= residents[std::get<0>(new_state1)++];
+        std::get<1>(new_state1) -= RESIDENTS[std::get<0>(new_state1)++];
         std::get<2>(new_state1) = true;
         std::get<0>(new_state2)++;
         std::get<2>(new_state2) = false;
@@ -84,17 +90,26 @@ int subset_sum(std::tuple<unsigned int, unsigned int, bool> &current_state,
     {
         /*  
             Ordinary case 2:
-            - flag == false.
-            This means that there are currently two sets and,
-            therefore, the option to omit an element is not available.
+            - flag (added before or not) == false.
+            - flag (second set or not) == false;
+            This means that an element has been omitted. So, the
+            only choice is to either keep omitting elements or
+            to include elements. After an element is included,
+            the choice to omit is not available.
         */
-        auto new_state = current_state;
+        auto new_state1 = current_state;
+        auto new_state2 = current_state;
         /*
-            new_state = { current_index + 1, remainder - citizen[current_index], false}
+            new_state1 = { current_index + 1, remainder - RESIDENTS[current_index], true, true}
+            new_state2 = { current_index + 1, remainder, false, false}
         */
-        std::get<1>(new_state) -= residents[std::get<0>(new_state)++];
-        std::get<2>(new_state) = false;
-        return subset_sum(new_state, current_ans + 1, size);
+        std::get<1>(new_state1) -= RESIDENTS[std::get<0>(new_state1)++];
+        std::get<2>(new_state1) = true;
+        std::get<3>(new_state1) = true;
+        std::get<0>(new_state2)++;
+        std::get<2>(new_state2) = false;
+        return std::min(subset_sum(new_state1, current_ans + 1, size),
+                        subset_sum(new_state2, current_ans, size));
     }
 }
 
@@ -129,11 +144,11 @@ int main (int argc, char *argv[])
     unsigned int N = 0 ;
     unsigned int K = 0 ;
     infile >> N >> K;
-    for (unsigned int i = 0; i < N; ++i) infile >> residents[i];
+    for (unsigned int i = 0; i < N; ++i) infile >> RESIDENTS[i];
     /*
         Compute and print answer.
     */
-    auto initial_state = std::make_tuple((unsigned int) 0, (unsigned int) 0, true);
+    auto initial_state = std::make_tuple((unsigned int) 0, (unsigned int) 0, true, false);
     std::cout << subset_sum(initial_state, 0, N) << std::endl;
     /*
         Close file.
