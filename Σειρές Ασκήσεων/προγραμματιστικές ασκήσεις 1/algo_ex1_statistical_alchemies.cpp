@@ -112,7 +112,13 @@ int main (int argc, char *argv[])
     unsigned int K = 0;
     infile >> N >> K;
     for (unsigned int i = 0; i < N; ++i) infile >> STOCK[i];
-    const unsigned int median_index = (K+1)/2;
-
+    /*
+        Compute and print answer.
+    */
+    std::cout << maximum_median(N, K) << std::endl;
+    /*
+        Close file.
+    */
+    infile.close();
     return 0;
 }

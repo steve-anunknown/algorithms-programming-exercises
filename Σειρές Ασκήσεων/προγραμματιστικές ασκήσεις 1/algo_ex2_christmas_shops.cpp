@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <unordered_map>
+#include <map>
 #include <tuple>
 #define MAXN 20000
 #define MAXK 1000000
@@ -27,10 +27,12 @@ unsigned int RESIDENTS[MAXN] = {};
 
     The unordered_map "SOLUTIONS" uses states as keys and returnes stored answers.
 */
-std::unordered_map<std::tuple<unsigned int, unsigned int, bool, bool>, int > SOLUTIONS;
 
-int subset_sum(const std::tuple<unsigned int, unsigned int, bool, bool> &current_state,
-                const int &current_ans, const unsigned int &size)
+typedef std::tuple<unsigned int, int, bool, bool> state;
+
+std::map<state, int > SOLUTIONS;
+
+int subset_sum(const state &current_state, const int &current_ans, const unsigned int &size)
 {   
     if (SOLUTIONS.find(current_state) != SOLUTIONS.end())
         /*
@@ -148,7 +150,7 @@ int main (int argc, char *argv[])
     /*
         Compute and print answer.
     */
-    auto initial_state = std::make_tuple((unsigned int) 0, (unsigned int) 0, true, false);
+    auto initial_state = std::make_tuple((unsigned int) 0, K, true, false);
     std::cout << subset_sum(initial_state, 0, N) << std::endl;
     /*
         Close file.
