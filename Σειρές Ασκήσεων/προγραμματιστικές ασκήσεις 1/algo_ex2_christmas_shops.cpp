@@ -29,7 +29,7 @@ unsigned int RESIDENTS[MAXN] = {};
 */
 std::unordered_map<std::tuple<unsigned int, unsigned int, bool, bool>, int > SOLUTIONS;
 
-int subset_sum(std::tuple<unsigned int, unsigned int, bool, bool> &current_state,
+int subset_sum(const std::tuple<unsigned int, unsigned int, bool, bool> &current_state,
                 const int &current_ans, const unsigned int &size)
 {   
     if (SOLUTIONS.find(current_state) != SOLUTIONS.end())
