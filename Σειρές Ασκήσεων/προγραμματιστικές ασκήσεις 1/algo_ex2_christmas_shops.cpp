@@ -12,42 +12,51 @@
 #include <tuple>
 #define MAXN 20000
 #define MAXK 1000000
-#define NO_ANSWER -1
+#define NO_ANSWER MAXN+1
 
 /*
     "RESIDENTS" array stores the number of residents in each
     apartment complex.
 */
 unsigned int RESIDENTS[MAXN] = {};
+
 /*
-    First element of tuple is element_index in "RESIDENTS" array.
-    Second element of tuple is remainder.
-    Third element of tuple is a boolean flag, whether an element was previously added or not.
-    Fourth element of tuple is a boolean flag, whether the second set is formed or not.
-
-    The unordered_map "SOLUTIONS" uses states as keys and returnes stored answers.
+    The state is represented by a quadruplet.
+    First field is the array's element's index.
+    Second field is the remainder.
+    Third field is whether an element was added before or not.
+    Fourth field is whether the second set has been created or not.
 */
-
 typedef std::tuple<unsigned int, int, bool, bool> state;
+/*
+    The key that corresponds to a stored solution is basically the state
+    but the third field is disregarded because it actually doesn't 
+    change the solution. It is only needed in order to know when
+    the change from the first set to the second set happens.
+*/
+typedef std::tuple<unsigned int, int, bool> key;
 
-std::map<state, int > SOLUTIONS;
+/*
+    The "SOLUTIONS" map stores the computed solutions using the keys
+    as defined above.
+*/
+std::map<key, int > SOLUTIONS;
 
-int subset_sum(const state &current_state, const int &current_ans, const unsigned int &size)
-{   
-    if (SOLUTIONS.find(current_state) != SOLUTIONS.end())
-        /*
-            Base case 1:
-            - If current state has been previously solved, just return the answer.
-        */
-        return SOLUTIONS.at(current_state);
+int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
+{  
+    key current_key = std::make_tuple(std::get<0>(current_state), // index
+                                      std::get<1>(current_state), // remainder
+                                      std::get<3>(current_state));// second set
     if (std::get<1>(current_state) == 0)
     {
         /*
-            Base case 2:
-            - If target sum has been reached, do not add another element.
+            Base case 1:
+            - If remainder == 0 (target sum has been reached), do not add another element.
               Insert answer in "SOLUTIONS" map and return it.
         */
-        SOLUTIONS.insert({current_state, current_ans});
+        if (SOLUTIONS.find(current_key) != SOLUTIONS.end() &&
+			SOLUTIONS.at(current_key) > current_ans)
+			SOLUTIONS.insert({current_key, current_ans});
         return current_ans;
     }
     else if (std::get<1>(current_state) < 0 ||
@@ -56,7 +65,7 @@ int subset_sum(const state &current_state, const int &current_ans, const unsigne
             !std::get<2>(current_state) && std::get<3>(current_state)))
     {
         /*
-            Base case 3: Target sum is unreachable
+            Base case 2: Target sum is unreachable
             - Remainder is negative.
             - Remainder is positive but no more elements.
             - Remainder is positive but the second set just closed.
@@ -64,16 +73,31 @@ int subset_sum(const state &current_state, const int &current_ans, const unsigne
                 - flag (second set or not) == true;
             Store the state and return "no answer". 
         */
-        SOLUTIONS.insert({current_state, NO_ANSWER});
+		
+        SOLUTIONS.insert({current_key, NO_ANSWER});
         return NO_ANSWER;
     }
-    else if (std::get<2>(current_state))
+    else if (SOLUTIONS.find(current_key) != SOLUTIONS.end())
+	{
+        /*
+            Base case 3:
+            - If current state has been previously solved, just return it.
+        */
+		
+        return SOLUTIONS.at(current_key);
+	}
+    else if (std::get<2>(current_state) || current_ans == 0)
     {
         /*
             Ordinary case 1:
             - flag (added before or not) == true.
             - flag (second set or not) == true or false;
             Currently creating the second set. 
+			
+			The "current_ans == 0" conditions ensures that a solution
+			can start without picking any elements. Without this condition,
+			if a solution started by omitting 2 elements, it would trigger
+			the "second set" flag and produce wrong results.
         */
         auto new_state1 = current_state;
         auto new_state2 = current_state;
@@ -150,8 +174,10 @@ int main (int argc, char *argv[])
     /*
         Compute and print answer.
     */
-    auto initial_state = std::make_tuple((unsigned int) 0, K, true, false);
-    std::cout << subset_sum(initial_state, 0, N) << std::endl;
+    auto initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
+    int answer = subset_sum(initial_state, 0, N);
+	if (answer == NO_ANSWER) answer = -1;
+    std::cout << answer << std::endl;
     /*
         Close file.
     */
