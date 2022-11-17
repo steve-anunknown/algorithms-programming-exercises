@@ -18,7 +18,7 @@
     The "STOCK" array stores the number of cereal stock per store.
 */
 unsigned int STOCK[MAXN] = {};
-unsigned int PREFIX[MAXN] = {};
+int PREFIX[MAXN] = {};
 
 bool possible_median(const unsigned int &k, const unsigned int &size, const unsigned int &med)
 {
@@ -34,8 +34,8 @@ bool possible_median(const unsigned int &k, const unsigned int &size, const unsi
         */
         PREFIX[i] = ( STOCK[i] >= med ) ? 1 + PREFIX[i-1] : -1 + PREFIX[i-1];
     }
-    unsigned int maximum = PREFIX[k-1];
-    unsigned int minimum = 0;
+    int maximum = PREFIX[k-1];
+    int minimum = 0;
     for (unsigned int i = k; i < size; ++i)
     {
         /*
