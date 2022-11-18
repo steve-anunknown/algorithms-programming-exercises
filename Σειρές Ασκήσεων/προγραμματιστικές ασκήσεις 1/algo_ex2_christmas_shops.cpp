@@ -44,9 +44,15 @@ std::map<key, int > SOLUTIONS;
 
 int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
 {  
-    key current_key = std::make_tuple(std::get<0>(current_state), // index
-                                      std::get<1>(current_state), // remainder
-                                      std::get<3>(current_state));// second set
+    /*
+        std::get<0>(current_state) is 'index' (unsigned int)
+        std::get<1>(current_state) is 'remainder' (int)
+        std::get<2>(current_state) is 'I added an element in the previous step' (bool)
+        std::get<3>(current_state) is 'I am currently building the second set' (bool)
+    */
+    key current_key = std::make_tuple(std::get<0>(current_state), 
+                                      std::get<1>(current_state), 
+                                      std::get<3>(current_state));
     if (std::get<1>(current_state) == 0)
     {
         /*

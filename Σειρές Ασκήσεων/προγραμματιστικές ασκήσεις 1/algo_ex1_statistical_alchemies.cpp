@@ -67,9 +67,6 @@ unsigned int maximum_median(const unsigned int &N, const unsigned int &K)
         */
         if (possible_median(K, N, mid))
         {
-            /*
-
-            */
             maximum = mid;
             left = mid + 1;
         }
