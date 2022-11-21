@@ -79,33 +79,30 @@ int main (void)
         Read input.
     */
     std::ifstream infile;
-	std::ifstream answers;
-	std::string input = "./input-output/cereal/input";
-	std::string output = "./input-output/cereal/output";
-	std::string suffix = ".txt";
-	std::string number = "";
-	std::string message = "";
+    std::ifstream answers;
+    std::string input = "./input-output/cereal/input";
+    std::string output = "./input-output/cereal/output";
+    std::string suffix = ".txt";
+    std::string number = "";
+    std::string message = "";
     unsigned int N = 0;
     unsigned int K = 0;
     unsigned int answer = 0;
     unsigned int correct = 0;
     for(unsigned int i = 1; i < FILE_NUMBER; ++i)
-	{
-		number = std::to_string(i);
-		infile.open(input+number+suffix);
-		if (!infile) exit(1);
-		infile >> N >> K;
-		for (unsigned int j = 0; j < N; ++j) infile >> STOCK[j];
-		infile.close();
-        answer = maximum_median(N,K);
-		answers.open(output+number+suffix);
-		answers >> correct ;
-		message = (answer==correct) ? "SUCCESS" : "FAIL" ;
-		std::cout << "\ntest " << number << ' ' << answer << ' ' << correct << ' ' << message;
-		answers.close();
-	}
-    for (unsigned int i = 0; i < N; ++i) std::cin >> STOCK[i];
-	std::cout << maximum_median(N,K) << std::endl;
-
+    {
+	number = std::to_string(i);
+	infile.open(input+number+suffix);
+	if (!infile) exit(1);
+	infile >> N >> K;
+	for (unsigned int j = 0; j < N; ++j) infile >> STOCK[j];
+	infile.close();
+	answer = maximum_median(N,K);
+	answers.open(output+number+suffix);
+	answers >> correct ;
+	message = (answer==correct) ? "SUCCESS" : "FAIL" ;
+	std::cout << "\ntest " << number << ' ' << answer << ' ' << correct << ' ' << message;
+	answers.close();
+    }
     return 0;
 }
