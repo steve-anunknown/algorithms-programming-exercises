@@ -8,69 +8,11 @@
 
 #include <iostream>
 #include <fstream>
-#include <unordered_map>
+#include <map>
 #include <tuple>
-#include <string>
-#include <bits/stdc++.h>
 #define MAXN 20000
 #define MAXK 1000000
 #define NO_ANSWER MAXN+1
-#define FILE_NUMBER 25
-
-// function has to live in the std namespace 
-// so that it is picked up by argument-dependent name lookup (ADL).
-namespace std{
-    namespace
-    {
-
-        // Code from boost
-        // Reciprocal of the golden ratio helps spread entropy
-        //     and handles duplicates.
-        // See Mike Seymour in magic-numbers-in-boosthash-combine:
-        //     https://stackoverflow.com/questions/4948780
-
-        template <class T>
-        inline void hash_combine(std::size_t& seed, T const& v)
-        {
-            seed ^= hash<T>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-        }
-
-        // Recursive template code derived from Matthieu M.
-        template <class Tuple, size_t Index = std::tuple_size<Tuple>::value - 1>
-        struct HashValueImpl
-        {
-          static void apply(size_t& seed, Tuple const& tuple)
-          {
-            HashValueImpl<Tuple, Index-1>::apply(seed, tuple);
-            hash_combine(seed, get<Index>(tuple));
-          }
-        };
-
-        template <class Tuple>
-        struct HashValueImpl<Tuple,0>
-        {
-          static void apply(size_t& seed, Tuple const& tuple)
-          {
-            hash_combine(seed, get<0>(tuple));
-          }
-        };
-    }
-
-    template <typename ... TT>
-    struct hash<std::tuple<TT...>> 
-    {
-        size_t
-        operator()(std::tuple<TT...> const& tt) const
-        {                                              
-            size_t seed = 0;                             
-            HashValueImpl<std::tuple<TT...> >::apply(seed, tt);    
-            return seed;                                 
-        }                                              
-
-    };
-}
-
-
 
 /*
     "RESIDENTS" array stores the number of residents in each
@@ -94,7 +36,6 @@ typedef std::tuple<unsigned int, int, bool, bool> state;
 */
 typedef std::tuple<unsigned int, int, bool> key;
 
-
 unsigned int line = 0;
 void print_state(const state &s)
 {
@@ -111,7 +52,7 @@ void print_state(const state &s)
     The "SOLUTIONS" map stores the computed solutions using the keys
     as defined above.
 */
-std::unordered_map<key, int> SOLUTIONS;
+std::map<key, int> SOLUTIONS;
 
 int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
 {  
@@ -215,40 +156,39 @@ int subset_sum(state &current_state, const int &current_ans, const unsigned int 
     }
 }
 
-
 int main (void)
 {
-	std::ifstream infile;
-	std::ifstream answers;
-	std::string input = "./input-output/shops2/input";
-	std::string output = "./input-output/shops2/output";
-	std::string suffix = ".txt";
-	std::string number = "";
-	std::string message = "";
+    std::ifstream infile;
+    std::ifstream answers;
+    std::string input = "./input-output/shops2/input";
+    std::string output = "./input-output/shops2/output";
+    std::string suffix = ".txt";
+    std::string number = "";
+    std::string message = "";
     unsigned int N = 0 ;
     unsigned int K = 0 ;
-	auto initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
-	int answer = 0;
-	int correct_answer = 0;
-	std::cout << " ============= BEGINNING TESTING ============= \n"; 
-	for(unsigned int i = 1; i < FILE_NUMBER; ++i)
-	{
-		number = std::to_string(i);
-		infile.open(input+number+suffix);
-		if (!infile) exit(1);
-		infile >> N >> K;
-		for (unsigned int j = 0; j < N; ++j) infile >> RESIDENTS[j];
-		infile.close();
-		initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
-		answer = subset_sum(initial_state, 0, N);
-		if (answer == NO_ANSWER) answer = -1;
-		answers.open(output+number+suffix);
-		answers >> correct_answer ;
-		message = (answer==correct_answer) ? "SUCCESS" : "FAIL" ;
-		std::cout << "\ntest " << number << ' ' << answer << ' ' << correct_answer << ' ' << message;
-		answers.close();
-		SOLUTIONS.clear();
-	}
-	std::cout << std::endl;
+    auto initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
+    int answer = 0;
+    int correct_answer = 0;
+    std::cout << " ============= BEGINNING TESTING ============= \n"; 
+    for(unsigned int i = 1; i < FILE_NUMBER; ++i)
+    {
+	number = std::to_string(i);
+	infile.open(input+number+suffix);
+	if (!infile) exit(1);
+	infile >> N >> K;
+	for (unsigned int j = 0; j < N; ++j) infile >> RESIDENTS[j];
+	infile.close();
+	initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
+	answer = subset_sum(initial_state, 0, N);
+	if (answer == NO_ANSWER) answer = -1;
+	answers.open(output+number+suffix);
+	answers >> correct_answer ;
+	message = (answer==correct_answer) ? "SUCCESS" : "FAIL" ;
+	std::cout << "\ntest " << number << ' ' << answer << ' ' << correct_answer << ' ' << message;
+	answers.close();
+	SOLUTIONS.clear();
+    }
+    std::cout << std::endl;
     return 0;
 }
