@@ -60,7 +60,6 @@ std::map<key, int> SOLUTIONS;
 #define CURRENT_KEY (std::make_tuple(INDEX, REMAINDER, SECOND_SET))
 #define VICTORY (REMAINDER == 0)
 #define DEFEAT (REMAINDER < 0 || (REMAINDER > 0 && INDEX == size) || (REMAINDER > 0 && !ADDED && SECOND_SET))
-#define EXISTS (SOLUTIONS.find(CURRENT_KEY) != SOLUTIONS.end())
 #define THERE_IS_BETTER ( EXISTS && SOLUTIONS.at(CURRENT_KEY) > current_ans)
 
 int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
@@ -70,6 +69,7 @@ int subset_sum(state &current_state, const int &current_ans, const unsigned int 
         variables below, results in an actual change to the
         fields of the tuple.
     */
+    bool exists = (SOLUTIONS.find(CURRENT_KEY) != SOLUTIONS.end());
     if (VICTORY)
     {
         /*
@@ -92,11 +92,11 @@ int subset_sum(state &current_state, const int &current_ans, const unsigned int 
                 - flag (second set or not) == true;
             Store the state and return "no answer". 
         */
-		
-        SOLUTIONS.insert({CURRENT_KEY, NO_ANSWER});
+	if (!exists)
+        	SOLUTIONS.insert({CURRENT_KEY, NO_ANSWER});
         return NO_ANSWER;
     }
-    else if (EXISTS)
+    else if (exists)
 	{
         /*
             Base case 3:
