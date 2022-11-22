@@ -53,6 +53,15 @@ void print_state(const state &s)
     as defined above.
 */
 std::map<key, int> SOLUTIONS;
+#define INDEX (std::get<0>(current_state))
+#define REMAINDER (std::get<1>(current_state))
+#define ADDED (std::get<2>(current_state))
+#define SECOND_SET (std::get<3>(current_state))
+#define CURRENT_KEY (std::make_tuple(INDEX, REMAINDER, SECOND_SET))
+#define VICTORY (REMAINDER == 0)
+#define DEFEAT (REMAINDER < 0 || (REMAINDER > 0 && INDEX == size) || (REMAINDER > 0 && !ADDED && SECOND_SET))
+#define EXISTS (SOLUTIONS.find(CURRENT_KEY) != SOLUTIONS.end())
+#define THERE_IS_BETTER ( EXISTS && SOLUTIONS.at(CURRENT_KEY) > current_ans)
 
 int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
 {  
@@ -61,25 +70,18 @@ int subset_sum(state &current_state, const int &current_ans, const unsigned int 
         variables below, results in an actual change to the
         fields of the tuple.
     */
-    unsigned int index = std::get<0>(current_state);
-    int remainder = std::get<1>(current_state);
-    bool added = std::get<2>(current_state);
-    bool second_set = std::get<3>(current_state);
-    key current_key = std::make_tuple(index, remainder, second_set);
-    if (remainder == 0)
+    if (VICTORY)
     {
         /*
             Base case 1:
             - If remainder == 0 (target sum has been reached), do not add another element.
               Insert answer in "SOLUTIONS" map and return it.
         */
-        if (SOLUTIONS.find(current_key) != SOLUTIONS.end() &&
-			SOLUTIONS.at(current_key) > current_ans)
-			SOLUTIONS.insert({current_key, current_ans});
+        if (THERE_IS_BETTER)
+			SOLUTIONS.insert({CURRENT_KEY, current_ans});
         return current_ans;
     }
-    else if (remainder < 0 || (remainder > 0 && index == size) ||
-            (remainder > 0 && !added && second_set))
+    else if (DEFEAT)
     {
         /*
             Base case 2: Target sum is unreachable
@@ -91,19 +93,19 @@ int subset_sum(state &current_state, const int &current_ans, const unsigned int 
             Store the state and return "no answer". 
         */
 		
-        SOLUTIONS.insert({current_key, NO_ANSWER});
+        SOLUTIONS.insert({CURRENT_KEY, NO_ANSWER});
         return NO_ANSWER;
     }
-    else if (SOLUTIONS.find(current_key) != SOLUTIONS.end())
+    else if (EXISTS)
 	{
         /*
             Base case 3:
             - If current state has been previously solved, just return it.
         */
 		
-        return SOLUTIONS.at(current_key);
+        return SOLUTIONS.at(CURRENT_KEY);
 	}
-    else if (added || current_ans == 0)
+    else if (ADDED || current_ans == 0)
     {
         /*
             Ordinary case 1:
