@@ -25,50 +25,8 @@ unsigned int PARTIAL_SUMS[MAXN] = {};
     First field is the array's element's index.
     Second field is the remainder.
     Third field is whether an element was added before or not.
-    Fourth field is whether the second set has been created or not.
-    Fifth field is whether we are at the beginning or in a gap.
 */
 typedef std::tuple<unsigned int, int, bool> state;
-/*
-    The key that corresponds to a stored solution is basically the state
-    but the third field is disregarded because it actually doesn't 
-    change the solution. It is only needed in order to know when
-    the change from the first set to the second set happens.
-*/
-typedef std::tuple<unsigned int, int> key;
-
-unsigned int line = 0;
-/// @brief Debugging help. Print state.
-/// @param s The state which to print.
-void print_state(const state &s)
-{
-	std::cout << '\n' << line ++ << ".) element index " << std::get<0>(s) <<'\n';
-	std::cout << line ++ <<".) remainder " << std::get<1>(s) <<'\n';
-	std::cout << line ++ <<".) flag (added or not) " << std::get<2>(s) <<'\n';
-	//std::cout << line ++ <<".) flag (second set) " << std::get<3>(s) <<'\n';
-}
-
-/*
-    The "SOLUTIONS" map stores the computed solutions using the keys
-    as defined above.
-*/
-/*
-//std::unordered_map<state, int> SOLUTIONS;
-std::unordered_map<key, int> SOLUTIONS;
-struct pair_compare
-{
-    bool operator()(const std::pair<unsigned int, unsigned int> &left,
-                    const std::pair<unsigned int, unsigned int> &right) const
-    {
-    if (std::get<0>(left) < std::get<0>(right))
-        return true;
-    else if ((std::get<0>(left) == std::get<0>(right)))
-        return (std::get<1>(left) < std::get<1>(right));
-    return false;
-    }
-};
-std::map<std::pair<unsigned int, unsigned int>, int, pair_compare> LINEAR_SOLUTIONS;
-*/
 
 /// @brief Search for the smallest contiguous set of numbers that add to target.
 /// @param start The index which to search from.
