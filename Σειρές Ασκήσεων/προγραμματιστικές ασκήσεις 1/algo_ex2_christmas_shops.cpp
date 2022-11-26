@@ -7,188 +7,128 @@
 */
 
 #include <iostream>
-#include <fstream>
-#include <map>
 #include <tuple>
+#include <string>
 #define MAXN 20000
 #define MAXK 1000000
 #define NO_ANSWER MAXN+1
+#define FILE_NUMBER 25
 
-/*
-    "RESIDENTS" array stores the number of residents in each
-    apartment complex.
-*/
+/// @brief Stores the number of residents in each apartment complex.
 unsigned int RESIDENTS[MAXN] = {};
+unsigned int PARTIAL_SUMS[MAXN] = {};
 
 /*
-    The state is represented by a quadruplet.
+    The state is represented by a quintuplet.
     First field is the array's element's index.
     Second field is the remainder.
     Third field is whether an element was added before or not.
     Fourth field is whether the second set has been created or not.
+    Fifth field is whether we are at the beginning or in a gap.
 */
-typedef std::tuple<unsigned int, int, bool, bool> state;
-/*
-    The key that corresponds to a stored solution is basically the state
-    but the third field is disregarded because it actually doesn't 
-    change the solution. It is only needed in order to know when
-    the change from the first set to the second set happens.
-*/
-typedef std::tuple<unsigned int, int, bool> key;
+typedef std::tuple<unsigned int, int, bool> state;
 
-/*
-    The "SOLUTIONS" map stores the computed solutions using the keys
-    as defined above.
-*/
-std::map<key, int > SOLUTIONS;
+/// @brief Search for the smallest contiguous set of numbers that add to target.
+/// @param start The index which to search from.
+/// @param end The index which to end to.
+/// @param target The target which to sum to.
+/// @return The minimum size of the set the elements of which add to the target.
+int linear(const unsigned int &start, const unsigned int &end, const unsigned int &target)
+{
+    int answer = 0;
+    unsigned int from = start;
+    unsigned int to = start;
+    unsigned int minimum = NO_ANSWER;
+    while(to <= end || answer >= target)
+    {
+        if (answer < target)
+            answer += RESIDENTS[to++];
+        else if (answer == target)
+        {
+            minimum = std::min(to - from, minimum);
+            answer -= RESIDENTS[from++];
+        }
+        else answer -= RESIDENTS[from++];
+    }
+    return minimum;
+}
 
 #define INDEX (std::get<0>(current_state))
 #define REMAINDER (std::get<1>(current_state))
 #define ADDED (std::get<2>(current_state))
-#define SECOND_SET (std::get<3>(current_state))
-#define CURRENT_KEY (std::make_tuple(INDEX, REMAINDER, SECOND_SET))
 #define VICTORY (REMAINDER == 0)
-#define DEFEAT (REMAINDER < 0 || (REMAINDER > 0 && INDEX == size) || (REMAINDER > 0 && !ADDED && SECOND_SET))
-#define THERE_IS_BETTER ( EXISTS && SOLUTIONS.at(CURRENT_KEY) > current_ans)
+#define DEFEAT ((REMAINDER < minimum) || (current_ans >= minimum_sofar) || (INDEX!=size && REMAINDER > PARTIAL_SUMS[size-1] - PARTIAL_SUMS[INDEX] + RESIDENTS[INDEX]) || (REMAINDER > 0 && INDEX == size))
+#define NOADD (subset_sum(new_state2, current_ans, size))
+#define ADD (subset_sum(new_state1, current_ans + 1, size))
 
+/// @brief minimum of the RESIDENTS array.
+int minimum = NO_ANSWER;
+/// @brief minimum answer so far.
+int minimum_sofar = NO_ANSWER;
+/// @brief 
+/// @param current_state The state which to solve for.
+/// @param current_ans The answer up to the state.
+/// @param size The size which to search up to.
+/// @return The minimum amount of elements, split at most between two contiguous sets, that solve the state.
 int subset_sum(state &current_state, const int &current_ans, const unsigned int &size)
-{  
-    /*
-        std::get<> returns references, so any change to the
-        variables below, results in an actual change to the
-        fields of the tuple.
-    */
-    bool exists = (SOLUTIONS.find(CURRENT_KEY) != SOLUTIONS.end());
-    if (VICTORY)
+{
+    if (VICTORY) return current_ans;
+    else if (DEFEAT) return NO_ANSWER;
+    auto new_state1 = current_state;
+    std::get<1>(new_state1) -= RESIDENTS[std::get<0>(new_state1)++];
+    std::get<2>(new_state1) = true;
+    int ans = 0;
+    if (!ADDED)
     {
-        /*
-            Base case 1:
-            - If remainder == 0 (target sum has been reached), do not add another element.
-              Insert answer in "SOLUTIONS" map and return it.
-        */
-        if (THERE_IS_BETTER)
-		SOLUTIONS.insert({CURRENT_KEY, current_ans});
-        return current_ans;
-    }
-    else if (DEFEAT)
-    {
-        /*
-            Base case 2: Target sum is unreachable
-            - Remainder is negative.
-            - Remainder is positive but no more elements.
-            - Remainder is positive but the second set just closed.
-                - flag (added before or not) == false.
-                - flag (second set or not) == true;
-            Store the state and return "no answer". 
-        */
-	if (!exists)
-        	SOLUTIONS.insert({CURRENT_KEY, NO_ANSWER});
-        return NO_ANSWER;
-    }
-    else if (exists)
-	{
-        /*
-            Base case 3:
-            - If current state has been previously solved, just return it.
-        */
-		
-        return SOLUTIONS.at(CURRENT_KEY);
-	}
-    else if (ADDED || current_ans == 0)
-    {
-        /*
-            Ordinary case 1:
-            - flag (added before or not) == true.
-            - flag (second set or not) == true or false;
-            Currently creating the second set. 
-			
-			The "current_ans == 0" conditions ensures that a solution
-			can start without picking any elements. Without this condition,
-			if a solution started by omitting 2 elements, it would trigger
-			the "second set" flag and produce wrong results.
-        */
-        auto new_state1 = current_state;
         auto new_state2 = current_state;
-        /*
-            new_state1 = { current_index + 1, remainder - RESIDENTS[current_index], true, X}
-            new_state2 = { current_index + 1, remainder, false, X}
-        */
-        std::get<1>(new_state1) -= RESIDENTS[std::get<0>(new_state1)++];
-        std::get<2>(new_state1) = true;
         std::get<0>(new_state2)++;
         std::get<2>(new_state2) = false;
-        return std::min(subset_sum(new_state1, current_ans + 1, size),
-                        subset_sum(new_state2, current_ans, size));
+        ans = std::min(NOADD, ADD);
     }
     else
     {
-        /*  
-            Ordinary case 2:
-            - flag (added before or not) == false.
-            - flag (second set or not) == false;
-            This means that an element has been omitted. So, the
-            only choice is to either keep omitting elements or
-            to include elements. After an element is included,
-            the choice to omit is not available.
-        */
-        auto new_state1 = current_state;
-        auto new_state2 = current_state;
         /*
-            new_state1 = { current_index + 1, remainder - RESIDENTS[current_index], true, true}
-            new_state2 = { current_index + 1, remainder, false, false}
+            If control reaches this point, then we are building the first set.
+            Explore both adding and not adding the current index, altering
+            only the "added" flag.
         */
-        std::get<1>(new_state1) -= RESIDENTS[std::get<0>(new_state1)++];
-        std::get<2>(new_state1) = true;
-        std::get<3>(new_state1) = true;
-        std::get<0>(new_state2)++;
-        std::get<2>(new_state2) = false;
-        return std::min(subset_sum(new_state1, current_ans + 1, size),
-                        subset_sum(new_state2, current_ans, size));
+        ans = std::min(current_ans + linear(INDEX, size, REMAINDER), ADD);
     }
+    minimum_sofar = std::min(minimum_sofar, ans);
+    return ans;
 }
 
-int main (int argc, char *argv[])
+/// @brief Initialize problem and call the solution function.
+/// @param N Size of the problem.
+/// @param K Target sum.
+/// @param answer Final answer.
+void solve(const unsigned &N, const unsigned &K, int &answer)
 {
-    /*
-        Assert that two arguments have been passed:
-        1) The executable's name.
-        2) The name of the input data file.
-    */
-    if (argc != 2)
-    {
-        std::cerr << "\n Usage: ./exefile.exe inputdatafile.txt" << std::endl;
-        exit(1);
-    }
-    /*
-        Try to open the file with the given filename.
-    */
-    std::ifstream infile;
-    infile.open(argv[1]);
-    if (!infile)
-    {
-        /*
-            If input file could not be opened, exit with error.
-        */
-        std::cerr << "unable to open input file \n";
-        exit(1);
-    }
-    /*
-        Read input.
-    */
+    auto initial_state = std::make_tuple((unsigned int) 0, (int) K, false);
+    answer = subset_sum(initial_state, 0, N);
+    answer = (answer == NO_ANSWER) ? -1 : answer;
+    minimum = NO_ANSWER;
+    minimum_sofar = NO_ANSWER;
+}
+
+int main (void)
+{
     unsigned int N = 0 ;
     unsigned int K = 0 ;
-    infile >> N >> K;
-    for (unsigned int i = 0; i < N; ++i) infile >> RESIDENTS[i];
+    std::cin >> N >> K;
+    std::cin >> RESIDENTS[0];
+    PARTIAL_SUMS[0] = RESIDENTS[0];
+    for (unsigned int j = 1; j < N; ++j) 
+    {
+        std::cin >> RESIDENTS[j];
+        PARTIAL_SUMS[j] += PARTIAL_SUMS[j-1] + RESIDENTS[j];
+        minimum = RESIDENTS[j] < minimum ? RESIDENTS[j] : minimum;
+    }
     /*
         Compute and print answer.
     */
-    auto initial_state = std::make_tuple((unsigned int) 0, (int) K, true, false);
-    int answer = subset_sum(initial_state, 0, N);
-	if (answer == NO_ANSWER) answer = -1;
+    int answer = 0;
+    solve(N, K, answer);
     std::cout << answer << std::endl;
-    /*
-        Close file.
-    */
-    infile.close();
     return 0;
 }
