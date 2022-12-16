@@ -123,41 +123,41 @@ int main (void)
 	std::cout << " ======= BEGINNING TESTING ======= \n"; 
 	for(unsigned int i = 1; i <= FILE_NUMBER; ++i)
 	{
-	number = std::to_string(i);
-	infile.open(input+number+suffix);
-	if (!infile)
-	{
-	    std::cerr << "failed to open" << std::endl;
-	    exit(1);
-	}
-	infile >> N >> K;
-	infile >> RESIDENTS[0];
-	PARTIAL_SUMS[0] = RESIDENTS[0];
-	minimum = RESIDENTS[0] < minimum ? RESIDENTS[0] : minimum;
-	for (unsigned int j = 1; j < N; ++j) 
-	{
-	    infile >> RESIDENTS[j]; 
-	    PARTIAL_SUMS[j] = PARTIAL_SUMS[j-1] + RESIDENTS[j];
-	    minimum = RESIDENTS[j] < minimum ? RESIDENTS[j] : minimum;
-	}
-	infile.close();
+		number = std::to_string(i);
+		infile.open(input+number+suffix);
+		if (!infile)
+		{
+		    std::cerr << "failed to open" << std::endl;
+		    exit(1);
+		}
+		infile >> N >> K;
+		infile >> RESIDENTS[0];
+		PARTIAL_SUMS[0] = RESIDENTS[0];
+		minimum = RESIDENTS[0] < minimum ? RESIDENTS[0] : minimum;
+		for (unsigned int j = 1; j < N; ++j) 
+		{
+		    infile >> RESIDENTS[j]; 
+		    PARTIAL_SUMS[j] = PARTIAL_SUMS[j-1] + RESIDENTS[j];
+		    minimum = RESIDENTS[j] < minimum ? RESIDENTS[j] : minimum;
+		}
+		infile.close();
 
-	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-	solve(N, K, computed_output);
-	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+		solve(N, K, computed_output);
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 
-	outfile.open(output+number+suffix);
-	if (!outfile)
-	{
-	    std::cerr << "failed to open" << std::endl;
-	    exit(1);
-	}
-	outfile >> correct_output ;
-	outfile.close();
+		outfile.open(output+number+suffix);
+		if (!outfile)
+		{
+		    std::cerr << "failed to open" << std::endl;
+		    exit(1);
+		}
+		outfile >> correct_output ;
+		outfile.close();
 
-	message = (computed_output==correct_output) ? "SUCCESS" : "FAIL" ;
-	std::cout << "\ntest " << number << ": " << computed_output << ' ' << correct_output << ' ' << message << ' '<< time_span.count();
+		message = (computed_output==correct_output) ? "SUCCESS" : "FAIL" ;
+		std::cout << "\ntest " << number << ": " << computed_output << ' ' << correct_output << ' ' << message << ' '<< time_span.count();
 	}
 	std::cout << std::endl;
     	return 0;
